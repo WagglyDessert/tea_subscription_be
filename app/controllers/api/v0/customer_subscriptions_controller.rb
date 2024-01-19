@@ -1,5 +1,5 @@
 class Api::V0::CustomerSubscriptionsController < ApplicationController
-
+  
   def create
     if !params[:customer_id].present? || !params[:subscription_id].present?
       render json: { error: [{status: "422", detail: 'Customer and subscription information are required.' }] }, status: :unprocessable_entity

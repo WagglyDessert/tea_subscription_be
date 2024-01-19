@@ -89,4 +89,6 @@ describe "Delete customer subscription" do
     expect(response_body[:error].first[:status]).to eq("404")
     expect(response_body[:error].first[:detail]).to eq("Customer subscription not found.")
   end
+
+
 end
