@@ -2,13 +2,13 @@ require 'rails_helper'
 
 describe "Create customer subscription" do
   it "receives parameters to create customer for subscription" do
+    customer = FactoryBot.create(:customer)
+    subscription = FactoryBot.create(:subscription)
     params = {
-      "email": "whatever@example.com",
-      "first_name": "Diana",
-      "last_name": "Kemmer",
-      "address": "4868 Rosenbaum Summit, Lake Benedict, PA 67970"
+      "customer_id": "#{customer.id}",
+      "subscription_id": "#{subscription.id}",
     }
-    post '/api/v0/customers', params: params
+    post '/api/v0/customer_subscriptions', params: params
     
     expect(response).to be_successful
     expect(response.status).to eq(201)
@@ -17,14 +17,14 @@ describe "Create customer subscription" do
     expect(response_body).to eq({:success=>true, :message=>"You are now subscribed!"})
   end
 
-  it "provides an error when missing a email, f_name, l_name, or address" do
+  it "provides an error when missing params" do
+    customer = FactoryBot.create(:customer)
+    subscription = FactoryBot.create(:subscription)
     params = {
-      "email": "whatever@example.com",
-      "first_name": "Diana",
-      "last_name": "Kemmer",
-      "address": ""
+      "customer_id": "",
+      "subscription_id": "#{subscription.id}",
     }
-    post '/api/v0/customers', params: params
+    post '/api/v0/customer_subscriptions', params: params
 
     expect(response).to_not be_successful
     expect(response.status).to eq(422)
@@ -32,18 +32,23 @@ describe "Create customer subscription" do
     expect(response_body).to be_a(Hash)
     expect(response_body[:error]).to be_a(Array)
     expect(response_body[:error].first[:status]).to eq("422")
-    expect(response_body[:error].first[:detail]).to eq("Email, first name, last name, and address are required to enroll in a subscription.")
+    expect(response_body[:error].first[:detail]).to eq("Customer and subscription information are required.")
   end
 
-  it "provides an error if email already exists." do
+  it "provides an error if custom subscription already exists." do
     customer = FactoryBot.create(:customer)
+    subscription = FactoryBot.create(:subscription)
     params = {
-      "email": "#{customer.email}",
-      "first_name": "Diana",
-      "last_name": "Kemmer",
-      "address": "4868 Rosenbaum Summit, Lake Benedict, PA 67970"
+      "customer_id": "#{customer.id}",
+      "subscription_id": "#{subscription.id}",
     }
-    post '/api/v0/customers', params: params
+    post '/api/v0/customer_subscriptions', params: params
+
+    params2 = {
+      "customer_id": "#{customer.id}",
+      "subscription_id": "#{subscription.id}",
+    }
+    post '/api/v0/customer_subscriptions', params: params
 
     expect(response).to_not be_successful
     expect(response.status).to eq(422)
@@ -59,7 +64,9 @@ end
 describe "Delete customer subscription" do
   it "receives parameters to delete customer from subscription" do
     customer = FactoryBot.create(:customer)
-    delete "/api/v0/customers/#{customer.id}"
+    subscription = FactoryBot.create(:subscription)
+    cs = CustomerSubscription.create!(customer: customer, subscription: subscription)
+    delete "/api/v0/customer_subscriptions/#{cs.id}"
     
     expect(response).to be_successful
     expect(response.status).to eq(200)
@@ -70,7 +77,9 @@ describe "Delete customer subscription" do
 
   it "cannot delete a subscription that doesn't exist" do
     customer = FactoryBot.create(:customer)
-    delete "/api/v0/customers/#{customer.id + 1}"
+    subscription = FactoryBot.create(:subscription)
+    cs = CustomerSubscription.create!(customer: customer, subscription: subscription)
+    delete "/api/v0/customer_subscriptions/#{cs.id + 1}"
     
     expect(response).to_not be_successful
     expect(response.status).to eq(404)
@@ -78,6 +87,6 @@ describe "Delete customer subscription" do
     expect(response_body).to be_a(Hash)
     expect(response_body[:error]).to be_a(Array)
     expect(response_body[:error].first[:status]).to eq("404")
-    expect(response_body[:error].first[:detail]).to eq("Customer not found.")
+    expect(response_body[:error].first[:detail]).to eq("Customer subscription not found.")
   end
 end
