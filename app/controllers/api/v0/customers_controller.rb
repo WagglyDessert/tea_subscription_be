@@ -18,7 +18,6 @@ class Api::V0::CustomersController < ApplicationController
   def destroy
     begin
       customer = Customer.find(params[:id])
-      customer
       customer.destroy!
       render json: { success: true, message: 'You are now unsubscribed!' }, status: 200
     rescue ActiveRecord::RecordNotFound
