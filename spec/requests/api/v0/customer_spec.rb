@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 describe "Indexes a customers subscriptions" do
-  it "shows a list of subscriptiosn" do
+  it "shows a list of subscriptions" do
     customer = FactoryBot.create(:customer)
     subscription = FactoryBot.create(:subscription)
     subscription2 = FactoryBot.create(:subscription)
